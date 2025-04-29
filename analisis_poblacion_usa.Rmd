@@ -1,0 +1,186 @@
+
+---
+title: "Análisis de Población USA por Año"
+author: "Iris Pamela Monroy Romero"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(pacman)
+p_load(readxl,haven,dplyr,factoextra,FactoMineR,readr,rgl,fpc,psych)
+```
+
+# Cargar Datos
+
+```{r}
+poblacion <- read_excel("C:/Users/MIRZ/Downloads/PoblacionUSA.xlsm")
+View(poblacion)
+```
+
+############## Año 2000 #########33
+
+## Filtrar y Normalizar Datos
+
+```{r}
+poblacion_2000 <- poblacion %>%
+  select(State, contains("AB:Qr-1-2000"), contains("Jul-1-2000"), contains("2000 - AB"))
+poblacion_2000 <- scale(poblacion_2000[,-1])
+View(poblacion_2000)
+```
+
+# Calcular KMO
+
+```{r}
+psych::KMO(poblacion_2000)
+```
+
+> *Nota:* #El índice KMO para todas las variables es igual a 0.5, lo cual es aceptable para realizar un Análisis de Componentes Principales (PCA).
+
+## Ajustar PCA
+
+```{r}
+pca <- princomp(poblacion_2000)
+summary(pca)
+```
+> *Nota:* #Las primeras dos componentes principales explican la mayor parte de la varianza (>10%).
+
+## Gráfica de Varianza Explicada
+
+```{r}
+fviz_eig(pca, choice="variance")
+```
+> *Nota:* #Solo los componentes 1 y 2 tienen varianza mayor al 10%.
+
+## Gráfica de Eigenvalores
+
+```{r}
+fviz_eig(pca, choice="eigenvalue")
+```
+> *Nota:* #Confirmamos que solo dos componentes tienen eigenvalores mayores a 1.
+
+## Representación de Individuos
+
+```{r}
+fviz_pca_ind(pca, col.ind="cos2", gradient.cols=c("red", "yellow", "green"), repel=FALSE)
+```
+> *Nota:* #las observaciones en color rojo no son tan bien representadas, pero son la minoria (solo son 2).
+
+## Representación de Variables
+
+```{r}
+fviz_pca_var(pca, col.ind="contrib", gradient.cols=c("red", "yellow", "green"), repel=FALSE)
+```
+> *Nota:* #Las variables están representadas principalmente en el primer cuadrante, con diferentes niveles de contribución.
+
+## Biplot de PCA
+
+```{r}
+fviz_pca_biplot(pca, col.var="red", col.ind="black")
+```
+> *Nota:* #Las observaciones se encuentran agrupadas mayormente en el cuadrante 2
+
+## Determinante de la Matriz de Correlación
+
+```{r}
+det(cor(poblacion_2000))
+```
+
+## PCA con Rotación Varimax
+
+```{r}
+pca2 <- psych::principal(poblacion_2000, nfactors=2, residuals = FALSE, rotate = "varimax",
+                         scores=TRUE, oblique.scores = FALSE, method = "regression",
+                         use = "pairwise", cor = "cor", weight = NULL)
+pca2
+```
+
+---
+
+###########  Año 2001 ##########
+
+## Filtrar y Normalizar Datos
+
+```{r}
+poblacion_2001 <- poblacion %>%
+  select(State, contains("Jul-1-2001"))
+poblacion_2001 <- scale(poblacion_2001[,-1])
+View(poblacion_2001)
+```
+
+## Calcular KMO
+
+```{r}
+psych::KMO(poblacion_2001)
+```
+
+
+# Ajustar PCA
+
+```{r}
+pca <- princomp(poblacion_2001)
+summary(pca)
+```
+> *Nota:* #Las primeras dos componentes principales explican la mayor parte de la varianza (>11%)
+
+## Gráfica de Varianza Explicada
+
+```{r}
+fviz_eig(pca, choice="variance")
+```
+
+
+## Gráfica de Eigenvalores
+
+```{r}
+fviz_eig(pca, choice="eigenvalue")
+```
+
+# Representación de Individuos
+
+```{r}
+fviz_pca_ind(pca, col.ind="cos2", gradient.cols=c("red", "yellow", "green"), repel=FALSE)
+```
+
+
+# Representación de Variables
+
+```{r}
+fviz_pca_var(pca, col.ind="contrib", gradient.cols=c("red", "yellow", "green"), repel=FALSE)
+```
+
+
+# Biplot de PCA
+
+```{r}
+fviz_pca_biplot(pca, col.var="red", col.ind="black")
+```
+
+
+# Determinante de la Matriz de Correlación
+
+```{r}
+det(cor(poblacion_2001))
+```
+
+
+# PCA con Rotación Varimax
+
+```{r}
+pca2 <- psych::principal(poblacion_2001, nfactors=2, residuals = FALSE, rotate = "varimax",
+                         scores=TRUE, oblique.scores = FALSE, method = "regression",
+                         use = "pairwise", cor = "cor", weight = NULL)
+pca2
+```
+## Matriz de Pesos y Puntuaciones
+
+```{r}
+# Pesos de los componentes
+pca2$weights
+pca2$weights[1:2,]
+```
+# Nuevos valores de las variables
+
+# Nuevos valores de las variables
+```{r}
+pca2$scores
+```
