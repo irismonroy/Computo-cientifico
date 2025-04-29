@@ -1,0 +1,135 @@
+
+---
+title: "Análisis PCA"
+author: "Iris Pamela Monroy Romero"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(pacman)
+p_load(readxl, haven, dplyr, factoextra, FactoMineR, readr, rgl, fpc, psych)
+```
+
+# Cargar Datos
+
+```{r}
+data <- read_csv2("C:/Users/MIRZ/Downloads/data_pca.csv")
+View(data)
+```
+
+# Normalizar datos (Quitamos la columna de la variable dependiente)
+
+```{r}
+data1 <- scale(data[,-16])
+View(data1)
+```
+
+# Calcular factor de adecuación  muestral de Kaiser-Meyer_Olkin
+
+```{r}
+# Calcular el KMO
+psych::KMO(data1)
+```
+
+> *Nota:* #No se toma en cuenta porque se va a reducir mucho (estan mal los datos)
+
+# Análisis de Componentes Principales (PCA)
+
+```{r}
+# Calcular PCA
+pca <- princomp(data1)
+summary(pca) # Resumen del PCA 
+```
+> *Nota:* #Solo considerar los que tienen la proporción de varianza más del 6% porque estamos reduciendo la dimensión. 
+#Hasta el momento se observa que las principales componentes que aportan mayor varianza son de la 1 a 6.
+
+# Cargas de las variables
+```{r}
+# Cargas de las variables
+pca$loadings
+```
+> *Nota:* #La variable x1 tiene una carga fuerte con la componente 14, mientras que la variable x2 esta relacionada negativamente con la componente 10.
+
+# Revisar varianza y eigenvalores
+
+```{r}
+# Gráficos de varianza y eigenvalores
+fviz_eig(pca, choice = "variance")
+fviz_eig(pca, choice = "eigenvalue")
+```
+
+> *Nota:* La componente uno y dos aportan la mayor varianza, además estos mismos componentes son los que tienen eigenvalores mayores a 1, lo adecuado es extraer unicamente dos factores.
+
+## Gráficos de Puntuaciones y Variables
+
+```{r}
+# Gráfico de puntuaciones de individuos
+fviz_pca_ind(pca,
+             col.ind = "cos2",
+             gradient.cols = c("red", "yellow", "green"),
+             repel = FALSE)
+```
+> *Nota:* #Las observaciones en color verde fuerte son representadas en mejor medida.
+#las observaciones 21 Y 43 no son tan bien representadas, pero son la minoria
+
+```{r}
+# Gráfico de variables
+fviz_pca_var(pca,
+             col.var = "contrib",
+             gradient.cols = c("red", "yellow", "green"),
+             repel = FALSE)
+```
+> *Nota:* #Las variables x11, x12, x7, x9, x1, x14 están agrupadas y apuntan en la misma dirección por lo que están positivamente correlacionadas entre sí.
+
+```{r}
+# Biplot de PCA
+fviz_pca_biplot(pca,
+                col.var = "red",
+                col.ind = "black")
+```
+> *Nota:* #Las observaciones se encuentran agrupadas mayormente en el cuadrante 1 y 3
+
+## Análisis de Correlaciones
+
+```{r}
+# Matriz de correlaciones
+psych::cor.plot(data1)
+
+# Determinante de la matriz de correlaciones
+det(cor(data1))
+```
+> *Nota:* #Existen diversas variables que estan correlacionadas tanto positiva como negativamente, lo cual es bueno para nuestro análisis de componentes. Esto se confirma con el resultado del determinante que es muy cercano a 0.
+
+# PCA utilizando `psych::principal` (Rotación Varimax)
+
+```{r}
+# Análisis PCA alternativo usando principal() de psych
+pca2 <- psych::principal(data1,
+                         nfactors = 6,
+                         residuals = FALSE,
+                         rotate = "varimax",
+                         scores = TRUE,
+                         oblique.scores = FALSE,
+                         method = "regression",
+                         use = "pairwise",
+                         cor = "cor")
+pca2
+```
+> *Nota:* #Los valores indican las cargas en cada componente, además, varimax ayuda a simplificar la interpretación de estas.
+
+## Matriz de Pesos y Puntuaciones
+
+```{r}
+# Pesos de los componentes
+pca2$weights
+pca2$weights[1:6,]
+```
+# Nuevos valores de las variables
+```{r}
+pca2$scores
+```
+
+
